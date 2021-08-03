@@ -1,12 +1,15 @@
 #!/usr/bin/env bash
 
-CURR_DIR_PATH="$(realpath "$(dirname "$0")")"
-PROJECT_DIR_PATH="$(realpath "${CURR_DIR_PATH}/../../")"
-CONDA_PATH="${HOME}/software/anaconda3/etc/profile.d/conda.sh"
+CURR_DIR_PATH="$(cd -- "$(dirname "$(realpath "$0")")" > /dev/null 2>&1 || exit ; pwd -P)"
+PROJECT_DIR_PATH="$(realpath "${CURR_DIR_PATH}/../")"
+CONDA_SH_PATH="${HOME}/software/anaconda3/etc/profile.d/conda.sh"
+CONTAINER_PATH=/lus/theta-fs0/software/thetagpu/nvidia-containers/pytorch/pytorch_20.12-py3.simg
+
 
 ########################################################################
 # Data directories
 ########################################################################
+
 DATA_DIR_PATH="${PROJECT_DIR_PATH}/data"
 
 RAW_DATA_DIR_PATH="${DATA_DIR_PATH}/raw"
@@ -30,12 +33,12 @@ GPT2_ENWIKI_TEXT_DIR_PATH="${ENWIKI_TEXT_DIR_PATH}/gpt2"
 T5_CASED_ENWIKI_TEXT_DIR_PATH="${ENWIKI_TEXT_DIR_PATH}/t5_cased"
 T5_UNCASED_ENWIKI_TEXT_DIR_PATH="${ENWIKI_TEXT_DIR_PATH}/t5_uncased"
 
+
 ########################################################################
 # Third-party directories
 ########################################################################
-THIRD_PARTY_DIR_PATH="$(dirname "${CURR_DIR_PATH}")"
 
-FAST_MOE_DIR_PATH="${THIRD_PARTY_DIR_PATH}/fast-moe"
-MEGATRON_DIR_PATH="${THIRD_PARTY_DIR_PATH}/megatron-lm"
+THIRD_PARTY_DIR_PATH="${PROJECT_DIR_PATH}/third-party"
 
+MEGATRON_DIR_PATH="${THIRD_PARTY_DIR_PATH}/Megatron-LM"
 MEGATRON_CHECKPOINT_DIR_PATH="${MEGATRON_DIR_PATH}/checkpoints"
