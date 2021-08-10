@@ -1,13 +1,11 @@
 #!/usr/bin/env bash
 
-CURR_DIR_PATH="$(cd -- "$(dirname "$(realpath "$0")")" > /dev/null 2>&1 || exit ; pwd -P)"
-PROJECT_DIR_PATH="$(realpath "${CURR_DIR_PATH}/../")"
-CONDA_SH_PATH="${HOME}/software/anaconda3/etc/profile.d/conda.sh"
-CONTAINER_PATH=/lus/theta-fs0/software/thetagpu/nvidia-containers/pytorch/pytorch_20.12-py3.simg
+CURR_DIR_PATH="$( cd -- "$( dirname "$( realpath "$0" ) " )" > /dev/null 2>&1 || exit ; pwd -P)"
+PROJECT_DIR_PATH="$( realpath "${CURR_DIR_PATH}/../" )"
 
 
 ########################################################################
-# Data directories
+# Data paths
 ########################################################################
 
 DATA_DIR_PATH="${PROJECT_DIR_PATH}/data"
@@ -35,10 +33,18 @@ T5_UNCASED_ENWIKI_TEXT_DIR_PATH="${ENWIKI_TEXT_DIR_PATH}/t5_uncased"
 
 
 ########################################################################
-# Third-party directories
+# Third-party paths
 ########################################################################
 
 THIRD_PARTY_DIR_PATH="${PROJECT_DIR_PATH}/third-party"
 
 MEGATRON_DIR_PATH="${THIRD_PARTY_DIR_PATH}/Megatron-LM"
 MEGATRON_CHECKPOINT_DIR_PATH="${MEGATRON_DIR_PATH}/checkpoints"
+
+
+########################################################################
+# Other paths
+########################################################################
+
+LOG_DIR_PATH="${PROJECT_DIR_PATH}/logs"
+CONTAINER_PATH=/lus/theta-fs0/software/thetagpu/nvidia-containers/pytorch/pytorch_20.12-py3.simg

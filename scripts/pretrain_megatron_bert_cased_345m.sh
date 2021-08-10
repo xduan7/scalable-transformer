@@ -1,7 +1,18 @@
 #!/usr/bin/env bash
 
-CURR_DIR_PATH="$(cd -- "$(dirname "$(realpath "$0")")" > /dev/null 2>&1 || exit ; pwd -P)"
-source "${CURR_DIR_PATH}/setup.sh"
+# Arguments:
+#   -d or --distributed: option for distributed training (for multi-GPU)
+#
+# Usage:
+#   Single-GPU training: `./pretrain_megatron_bert_cased_345m.sh`
+#   Multi-GPU training: `./pretrain_megatron_bert_cased_345m.sh -d`
+#
+# Note:
+#   This script is only good for debugging on single-node.
+#   Please use `./submit_pretraining_job.sh` for training job
+#   submission with Cobalt on single node or multiple nodes with MPI.
+
+CURR_DIR_PATH="$( cd -- "$( dirname "$( realpath "$0" ) " )" > /dev/null 2>&1 || exit ; pwd -P)"
 source "${CURR_DIR_PATH}/paths.sh"
 
 LOAD_CHECKPOINT_PATH="${MEGATRON_CHECKPOINT_DIR_PATH}/bert_cased_345m"
@@ -20,8 +31,6 @@ BERT_ARGS="\
   --train-iters 2000000 \
   --min-lr 0.00001 \
   --lr-warmup-fraction 0.01 \
-  --micro-batch-size 4 \
-  --global-batch-size 8 \
   --vocab-file ${VOCAB_FILE} \
   --split 949,50,1 \
   --fp16 \
@@ -32,11 +41,25 @@ OUTPUT_ARGS="\
   --save-interval 500 \
   --eval-interval 100 \
   --eval-iters 10 \
-  --checkpoint-activations
+  --checkpoint-activations \
 "
 
-PYTHON_CMD="python3 ${MEGATRON_DIR_PATH}/pretrain_bert.py \
+if  [ "$1" = "-d" ] || [ "$1" = "--distributed" ]; then
+  source "${CURR_DIR_PATH}/distributed_params.sh"
+else
+  MICRO_BATCH=4
+  GLOBAL_BATCH=8
+  BERT_BATCH_ARGS="\
+    --micro-batch-size ${MICRO_BATCH} \
+    --global-batch-size ${GLOBAL_BATCH} \
+  "
+fi
+
+PYTHON_CMD="python3 \
+  ${DISTRIBUTED_MODULE} ${DISTRIBUTED_MODULE_ARGS} \
+  ${MEGATRON_DIR_PATH}/pretrain_bert.py \
   ${BERT_ARGS} \
+  ${BERT_BATCH_ARGS} \
   ${OUTPUT_ARGS} \
   --save ${SAVE_CHECKPOINT_PATH} \
   --load ${LOAD_CHECKPOINT_PATH} \
@@ -46,6 +69,7 @@ PYTHON_CMD="python3 ${MEGATRON_DIR_PATH}/pretrain_bert.py \
 # shellcheck disable=SC2086
 singularity exec \
   --nv \
+  --cleanenv \
   --bind /gpfs/mira-home/xduan7,/lus/theta-fs0/projects/candle_aesp/xduan7/data \
   "${CONTAINER_PATH}" \
   ${PYTHON_CMD}
