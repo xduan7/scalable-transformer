@@ -16,7 +16,7 @@ COBALT_JOB_NAME="${1}${2}"
 
 if  [ "$2" = "-d" ] || [ "$2" = "--distributed" ]; then
   PRETRAIN_CMD="$( which mpirun ) \
-    -hostfile ${COBALT_NODEFILE} \
+    --hostfile ${COBALT_NODEFILE} \
     --map-by ppr:1:node \
     ${PRETRAIN_SCRIPT_PATH} ${2} \
   "

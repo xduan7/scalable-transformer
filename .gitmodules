@@ -1,3 +1,6 @@
 [submodule "third-party/Megatron-LM"]
 	path = third-party/Megatron-LM
 	url = https://github.com/NVIDIA/Megatron-LM
+[submodule "third-party/DeepSpeed"]
+	path = third-party/DeepSpeed
+	url = https://github.com/microsoft/DeepSpeed.git
