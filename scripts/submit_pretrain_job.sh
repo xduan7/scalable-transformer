@@ -28,10 +28,11 @@ else
   NUM_NODES=1
 fi
 
+# shellcheck disable=SC2086
 qsub \
   -n ${NUM_NODES} \
   -t 6:00:00 \
   -A CVD-Mol-AI \
   -q full-node \
   -O "${LOG_DIR_PATH}/${COBALT_JOB_NAME}" \
-  "${PRETRAIN_CMD}"
+  ${PRETRAIN_CMD}
