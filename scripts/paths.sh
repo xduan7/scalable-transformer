@@ -47,4 +47,7 @@ MEGATRON_CHECKPOINT_DIR_PATH="${MEGATRON_DIR_PATH}/checkpoints"
 ########################################################################
 
 LOG_DIR_PATH="${PROJECT_DIR_PATH}/logs"
-CONTAINER_PATH=/lus/theta-fs0/software/thetagpu/nvidia-containers/pytorch/pytorch_20.12-py3.simg
+
+CONDA_PATH="/lus/theta-fs0/software/thetagpu/conda/2021-06-28/mconda3/"
+CONTAINER_PATH="/lus/theta-fs0/software/thetagpu/nvidia-containers/pytorch/pytorch_20.12-py3.simg"
+

@@ -1,11 +1,15 @@
 #!/usr/bin/env bash
 
+# Pre-train Megatron-LM BERT (cased with 345m parameters) on single
+#   machine node (with one or more GPUs)
+#
 # Arguments:
-#   -d or --distributed: option for distributed training (for multi-GPU)
+#   -d or --distributed: option for multi-GPU training
 #
 # Usage:
-#   Single-GPU training: `./pretrain_megatron_bert_cased_345m.sh`
-#   Multi-GPU training: `./pretrain_megatron_bert_cased_345m.sh -d`
+#   $ ./pretrain_megatron_bert_cased_345m.sh  # single GPU
+#   or
+#   $ ./pretrain_megatron_bert_cased_345m.sh -d  # multiple GPUs
 #
 # Note:
 #   This script is only good for debugging on single-node.
@@ -45,13 +49,18 @@ OUTPUT_ARGS="\
 "
 
 if  [ "$1" = "-d" ] || [ "$1" = "--distributed" ]; then
+  # Get the following variables from `distributed_params.sh`:
+  # - DISTRIBUTED_MODULE
+  # - DISTRIBUTED_MODULE_ARGS
+  # - DISTRIBUTED_ARGS
+  # - BERT_BATCH_ARGS
   source "${CURR_DIR_PATH}/distributed_params.sh"
 else
-  MICRO_BATCH=4
-  GLOBAL_BATCH=8
+  MICRO_BATCH_SIZE=4
+  GLOBAL_BATCH_SIZE=8
   BERT_BATCH_ARGS="\
-    --micro-batch-size ${MICRO_BATCH} \
-    --global-batch-size ${GLOBAL_BATCH} \
+    --micro-batch-size ${MICRO_BATCH_SIZE} \
+    --global-batch-size ${GLOBAL_BATCH_SIZE} \
   "
 fi
 
@@ -71,5 +80,5 @@ singularity exec \
   --nv \
   --cleanenv \
   --bind /gpfs/mira-home/xduan7,/lus/theta-fs0/projects/candle_aesp/xduan7/data \
-  "${CONTAINER_PATH}" \
+  ${CONTAINER_PATH} \
   ${PYTHON_CMD}
