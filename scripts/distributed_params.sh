@@ -63,9 +63,4 @@ DISTRIBUTED_MODULE_ARGS="\
 DISTRIBUTED_ARGS="\
   --tensor-model-parallel-size ${TENSOR_MP_SIZE} \
   --pipeline-model-parallel-size ${PIPELINE_MP_SIZE} \
-  --DDP-impl torch \
-"
-BERT_BATCH_ARGS="\
-  --micro-batch-size ${MICRO_BATCH_SIZE} \
-  --global-batch-size ${GLOBAL_BATCH_SIZE} \
 "

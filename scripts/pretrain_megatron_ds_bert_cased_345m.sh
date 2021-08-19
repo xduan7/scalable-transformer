@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Pre-train Megatron-LM BERT (cased with 345m parameters) on single
+# Pre-train Megatron-LM DeepSpeed BERT (cased with 345m parameters) on single
 #   machine node (with one or more GPUs)
 #
 # Arguments:
@@ -9,17 +9,21 @@
 # Usage:
 #   $ ./pretrain_megatron_bert_cased_345m.sh  # single GPU
 #   or
-#   $ ./pretrain_megatron_bert_cased_345m.sh -d  # multiple GPUs on a single node
+#   $ ./pretrain_megatron_bert_cased_345m.sh -d  # multiple GPUs
 #
-# Note: for MPI runs, use `submi`
+# Note:
+#   This script is only good for debugging on single-node.
+#   Please use `./submit_pretraining_job.sh` for training job
+#   submission with Cobalt on single node or multiple nodes with MPI.
 
 CURR_DIR_PATH="$( cd -- "$( dirname "$( realpath "$0" ) " )" > /dev/null 2>&1 || exit ; pwd -P)"
 source "${CURR_DIR_PATH}/paths.sh"
 
-# LOAD_CHECKPOINT_PATH="${MEGATRON_BERT_CASED_345M_CHECKPOINT_DIR_PATH}"
 SAVE_CHECKPOINT_PATH="${RETRAINED_BERT_CASED_345M_CHECKPOINT_DIR_PATH}"
 VOCAB_FILE="${BERT_CASED_ENWIKI_VOCAB_PATH}"
 DATA_PATH="${BERT_CASED_ENWIKI_TEXT_DIR_PATH}/text_sentence"
+DS_CONFIG_PATH="${DS_ZERO3_CONFIG_PATH}"
+
 
 BERT_ARGS="\
   --num-layers 24 \
@@ -31,10 +35,18 @@ BERT_ARGS="\
   --lr-decay-iters 990000 \
   --train-iters 2000000 \
   --min-lr 0.00001 \
-  --lr-warmup-fraction 0.01 \
+  --warmup 0.01 \
   --vocab-file ${VOCAB_FILE} \
   --split 949,50,1 \
   --fp16 \
+"
+
+DEEPSPEED_ARGS=" \
+  --deepspeed \
+  --deepspeed_config ${DS_CONFIG_PATH} \
+  --zero-stage 3 \
+  --zero-reduce-bucket-size 50000000 \
+  --zero-allgather-bucket-size 5000000000 \
 "
 
 OUTPUT_ARGS="\
@@ -45,40 +57,40 @@ OUTPUT_ARGS="\
   --checkpoint-activations \
 "
 
-if  [ "${1}" = "-d" ] || [ "${1}" = "--distributed" ]; then
+if  [ "$1" = "-d" ] || [ "$1" = "--distributed" ]; then
   # Get the following variables from `distributed_params.sh`:
-  # - DISTRIBUTED_MODULE
-  # - DISTRIBUTED_MODULE_ARGS
-  # - DISTRIBUTED_ARGS
-  # - BERT_BATCH_ARGS
+  # - NNODES
+  # - GPUS_PER_NODE
+  # - MICRO_BATCH_SIZE
   source "${CURR_DIR_PATH}/distributed_params.sh"
 else
+  NNODES=1
+  GPUS_PER_NODE=1
   MICRO_BATCH_SIZE=4
-  GLOBAL_BATCH_SIZE=8
-  BERT_BATCH_ARGS="\
-    --micro-batch-size ${MICRO_BATCH_SIZE} \
-    --global-batch-size ${GLOBAL_BATCH_SIZE} \
-  "
 fi
-
-# Some parallelized models are not compatible with the OG Megatron-LM checkpoint
-# Add `--load ${LOAD_CHECKPOINT_PATH}` into the following command for loading
-#   the OG Megatron-LM checkpoints,
-CONTAINER_CMD="${CONTAINER_PYTHON_PATH} \
-  ${DISTRIBUTED_MODULE} ${DISTRIBUTED_MODULE_ARGS} \
-  ${MEGATRON_DIR_PATH}/pretrain_bert.py \
-  ${BERT_ARGS} \
-  ${BERT_BATCH_ARGS} \
-  ${DISTRIBUTED_ARGS} \
-  ${OUTPUT_ARGS} \
-  --save ${SAVE_CHECKPOINT_PATH} \
-  --data-path ${DATA_PATH} \
+BERT_BATCH_ARGS="\
+  --batch-size ${MICRO_BATCH_SIZE} \
 "
 
+
+# Optioanla: dd `--load ${LOAD_CHECKPOINT_PATH}` into the following command
+PYTHON_CMD="deepspeed \
+  --num_nodes ${NNODES} \
+  --num_gpus ${GPUS_PER_NODE} \
+  ${MEGATRON_DS_DIR_PATH}/pretrain_bert.py \
+  ${BERT_ARGS} \
+  ${BERT_BATCH_ARGS} \
+  ${DEEPSPEED_ARGS} \
+  ${OUTPUT_ARGS} \
+  --save ${SAVE_CHECKPOINT_PATH} \
+  --data-path ${DATA_PATH}"
+
+# `PYTHON_CMD` must be split into globs for argparse parsing
 # shellcheck disable=SC2086
 singularity exec \
   --nv \
   --cleanenv \
-  --bind /gpfs,/lus \
+  --env PATH="/home/xduan7/.local/bin:\${PATH}" \
+  --bind /gpfs/mira-home/xduan7,/lus/theta-fs0/projects/candle_aesp/xduan7/data \
   ${CONTAINER_PATH} \
-  ${CONTAINER_CMD}
+  ${PYTHON_CMD}

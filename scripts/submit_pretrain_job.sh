@@ -2,37 +2,37 @@
 
 # Arguments:
 #   pretrain script name: positional argument; must exist in `./`
-#   -d or --distributed: enable distributed training (for multi-node)
+#   NUM_NODES: number of nodes for pre-training
 #
 # Usage:
-#   $ ./submit_pretrain_job.sh pretrain_megatron_bert_cased_345m.sh  # single GPU
-#   or
-#   $ ./submit_pretrain_job.sh pretrain_megatron_bert_cased_345m.sh -d # multiple nodes
+#   # training on N nodes
+#   $ ./submit_pretrain_job.sh \
+#       pretrain_megatron_bert_cased_345m.sh N
+
 
 CURR_DIR_PATH="$( cd -- "$( dirname "$( realpath "$0" ) " )" > /dev/null 2>&1 || exit ; pwd -P)"
 source "${CURR_DIR_PATH}/paths.sh"
 
 PRETRAIN_SCRIPT_PATH="${CURR_DIR_PATH}/${1}"
-COBALT_JOB_NAME="${1}${2}"
+PRETRAIN_LOG_DIR_PATH="${LOG_DIR_PATH}/${1%.*}_on_${2}_nodes"
 
-PRETRAIN_CMD="${PRETRAIN_SCRIPT_PATH} ${2}"
-if  [ "${2}" = "-d" ] || [ "${2}" = "--distributed" ]; then
-  NUM_NODES=8
-  MPIRUN="$( which mpirun )"
-  PRETRAIN_CMD="${MPIRUN} \
-    --hostfile ${COBALT_NODEFILE} \
-    --map-by ppr:1:node \
-    ${PRETRAIN_CMD} \
-  "
+if [[ "${2}" == 1 ]]; then
+  PRETRAIN_CMD="${PRETRAIN_SCRIPT_PATH} -d"
 else
-  NUM_NODES=1
+  PRETRAIN_CMD="\
+    module load openmpi &&
+    mpirun \
+      --hostfile ${COBALT_NODEFILE} \
+      --map-by ppr:1:node \
+      ${SINGULARITY_CMD} ${PRETRAIN_SCRIPT_PATH} -d \
+  "
 fi
 
 # shellcheck disable=SC2086
 qsub \
-  -n ${NUM_NODES} \
+  -n ${2} \
   -t 6:00:00 \
   -A CVD-Mol-AI \
   -q full-node \
-  -O "${LOG_DIR_PATH}/${COBALT_JOB_NAME}" \
+  -O ${PRETRAIN_LOG_DIR_PATH} \
   ${PRETRAIN_CMD}
