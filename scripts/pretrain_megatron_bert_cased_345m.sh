@@ -11,7 +11,10 @@
 #   or
 #   $ ./pretrain_megatron_bert_cased_345m.sh -d  # multiple GPUs on a single node
 #
-# Note: for MPI runs, use `submi`
+# Note:
+#   This script is only good for debugging on single-node.
+#   Please use `./submit_pretraining_job.sh` for training job
+#   submission with Cobalt on single node or multiple nodes with MPI.
 
 CURR_DIR_PATH="$( cd -- "$( dirname "$( realpath "$0" ) " )" > /dev/null 2>&1 || exit ; pwd -P)"
 source "${CURR_DIR_PATH}/paths.sh"
@@ -55,11 +58,11 @@ if  [ "${1}" = "-d" ] || [ "${1}" = "--distributed" ]; then
 else
   MICRO_BATCH_SIZE=4
   GLOBAL_BATCH_SIZE=8
-  BERT_BATCH_ARGS="\
-    --micro-batch-size ${MICRO_BATCH_SIZE} \
-    --global-batch-size ${GLOBAL_BATCH_SIZE} \
-  "
 fi
+BERT_BATCH_ARGS="\
+  --micro-batch-size ${MICRO_BATCH_SIZE} \
+  --global-batch-size ${GLOBAL_BATCH_SIZE} \
+"
 
 # Some parallelized models are not compatible with the OG Megatron-LM checkpoint
 # Add `--load ${LOAD_CHECKPOINT_PATH}` into the following command for loading

@@ -50,11 +50,11 @@ read -r -d '\n' MASTER_ADDR NNODES NODE_RANK <<< "${MPI_SPECS}"
 # Generate distributed parameters for pretraining
 GPUS_PER_NODE=$( nvidia-smi --list-gpus | wc -l )
 WORLD_SIZE=$((GPUS_PER_NODE*NNODES))
-GLOBAL_BATCH_SIZE=$((MICRO_BATCH*GPUS_PER_NODE*NNODES))
+GLOBAL_BATCH_SIZE=$((MICRO_BATCH_SIZE*GPUS_PER_NODE*NNODES))
 
 DISTRIBUTED_MODULE="-m torch.distributed.launch"
 DISTRIBUTED_MODULE_ARGS="\
-  --nproc_per_node ${WORLD_SIZE} \
+  --nproc_per_node ${GPUS_PER_NODE} \
   --nnodes ${NNODES} \
   --node_rank ${NODE_RANK} \
   --master_addr ${MASTER_ADDR} \
