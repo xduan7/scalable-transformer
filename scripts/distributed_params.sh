@@ -23,13 +23,12 @@ TENSOR_MP_SIZE=2
 PIPELINE_MP_SIZE=2
 MASTER_PORT=6000
 
+CURR_DIR_PATH="$( cd -- "$( dirname "$( realpath "$0" ) " )" > /dev/null 2>&1 || exit ; pwd -P)"
+source "${CURR_DIR_PATH}/paths.sh"
+
 # Get the MPI specifications using Python
 # Command like `module load` or 'conda' won't work in mpirun
 # `NNODES` will always be 1 if not executed in mpirun
-if [[ -z "${CONDA_PATH}" ]]; then
-  CURR_DIR_PATH="$( cd -- "$( dirname "$( realpath "$0" ) " )" > /dev/null 2>&1 || exit ; pwd -P)"
-  source "${CURR_DIR_PATH}/paths.sh"
-fi
 source "${CONDA_PATH}/bin/activate" base
 # Note that there might be warning/error messages during the execution of the following code
 GET_MPI_SPECS_FROM_MPI4PY=$(python3 -W ignore << EOF
@@ -64,3 +63,24 @@ DISTRIBUTED_ARGS="\
   --tensor-model-parallel-size ${TENSOR_MP_SIZE} \
   --pipeline-model-parallel-size ${PIPELINE_MP_SIZE} \
 "
+
+# Construct a new hostfile compatible with DeepSpeed, stored in
+# environment variable `DS_HOSTFILE_PATH=${SCRIPT_DIR_PATH}/.deepspeed_hostfile`
+#if [[ -f "${COBALT_NODEFILE}" ]]; then
+#  rm -f "${DS_HOSTFILE_PATH}" 2> /dev/null && touch "${DS_HOSTFILE_PATH}"
+#  while read -r NAME; do
+#    IP_ADDR_CMD="hostname -I | cut -d' ' -f1"
+#    NUM_SLOTS_CMD="nvidia-smi --list-gpus | wc -l"
+#    if [[ "${NAME}" == "$( hostname )" ]]; then
+#      ADDR=$( eval "${IP_ADDR_CMD}" )
+#      NUM_SLOTS=$( eval "${NUM_SLOTS_CMD}" )
+#    else
+#      ADDR=$( ssh -n "${NAME}" "${IP_ADDR_CMD}" )
+#      NUM_SLOTS=$( ssh -n "${NAME}" "${NUM_SLOTS_CMD}" )
+#    fi
+#    echo "${ADDR} slots=${NUM_SLOTS}" >> "${DS_HOSTFILE_PATH}"
+#  done < "${COBALT_NODEFILE}"
+#else
+#  # Only the master node have `COBALT_NODEFILE`; the other nodes should wait
+#  sleep 5
+#fi

@@ -1,15 +1,15 @@
 #!/usr/bin/env bash
 
-# Pre-train Megatron-LM BERT (cased with 345m parameters) on single
+# Pre-train Megatron-LM BERT (cased with 175b parameters) on single
 #   machine node (with one or more GPUs)
 #
 # Arguments:
 #   -d or --distributed: option for multi-GPU training
 #
 # Usage:
-#   $ ./pretrain_megatron_bert_cased_345m.sh  # single GPU
+#   $ ./pretrain_megatron_bert_cased_175b.sh  # single GPU
 #   or
-#   $ ./pretrain_megatron_bert_cased_345m.sh -d  # multiple GPUs on a single node
+#   $ ./pretrain_megatron_bert_cased_175b.sh -d  # multiple GPUs on a single node
 #
 # Note:
 #   This script is only good for debugging on single-node.
@@ -19,22 +19,22 @@
 CURR_DIR_PATH="$( cd -- "$( dirname "$( realpath "$0" ) " )" > /dev/null 2>&1 || exit ; pwd -P)"
 source "${CURR_DIR_PATH}/paths.sh"
 
-# LOAD_CHECKPOINT_PATH="${MEGATRON_BERT_CASED_345M_CHECKPOINT_DIR_PATH}"
-SAVE_CHECKPOINT_PATH="${RETRAINED_BERT_CASED_345M_CHECKPOINT_DIR_PATH}"
+SAVE_CHECKPOINT_PATH="${RETRAINED_BERT_CASED_175B_CHECKPOINT_DIR_PATH}"
 VOCAB_FILE="${BERT_CASED_ENWIKI_VOCAB_PATH}"
 DATA_PATH="${BERT_CASED_ENWIKI_TEXT_DIR_PATH}/text_sentence"
 
 BERT_ARGS="\
-  --num-layers 24 \
-  --hidden-size 1024 \
-  --num-attention-heads 16 \
-  --seq-length 512 \
-  --max-position-embeddings 512 \
-  --lr 0.0001 \
-  --lr-decay-iters 990000 \
-  --train-iters 2000000 \
-  --min-lr 0.00001 \
-  --lr-warmup-fraction 0.01 \
+  --num-layers 96 \
+  --hidden-size 12288 \
+  --num-attention-heads 96 \
+  --seq-length 2048 \
+  --max-position-embeddings 2048 \
+  --train-samples 146484375 \
+  --lr-decay-samples 126953125 \
+  --lr-warmup-samples 183105 \
+  --lr 6.0e-5 \
+	--min-lr 6.0e-6 \
+	--lr-decay-style cosine \
   --vocab-file ${VOCAB_FILE} \
   --split 949,50,1 \
   --fp16 \
@@ -55,6 +55,13 @@ if  [ "${1}" = "-d" ] || [ "${1}" = "--distributed" ]; then
   # - DISTRIBUTED_ARGS
   # - BERT_BATCH_ARGS
   source "${CURR_DIR_PATH}/distributed_params.sh"
+  DISTRIBUTED_ARGS="
+  	--tensor-model-parallel-size 8 \
+	  --pipeline-model-parallel-size 16 \
+	  --rampup-batch-size 16 16 5859375 \
+  "
+  MICRO_BATCH_SIZE=1
+  GLOBAL_BATCH_SIZE=256
 else
   MICRO_BATCH_SIZE=4
   GLOBAL_BATCH_SIZE=8

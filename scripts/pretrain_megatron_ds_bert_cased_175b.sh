@@ -1,15 +1,15 @@
 #!/usr/bin/env bash
 
-# Pre-train Megatron-LM BERT (cased with 345m parameters) on single
+# Pre-train Megatron-LM DeepSpeed BERT (cased with 175b parameters) on single
 #   machine node (with one or more GPUs)
 #
 # Arguments:
 #   -d or --distributed: option for multi-GPU training
 #
 # Usage:
-#   $ ./pretrain_megatron_bert_cased_345m.sh  # single GPU
+#   $ ./pretrain_megatron_bert_cased_175b.sh  # single GPU
 #   or
-#   $ ./pretrain_megatron_bert_cased_345m.sh -d  # multiple GPUs on a single node
+#   $ ./pretrain_megatron_bert_cased_175b.sh -d  # multiple GPUs
 #
 # Note:
 #   This script is only good for debugging on single-node.
@@ -19,25 +19,32 @@
 CURR_DIR_PATH="$( cd -- "$( dirname "$( realpath "$0" ) " )" > /dev/null 2>&1 || exit ; pwd -P)"
 source "${CURR_DIR_PATH}/paths.sh"
 
-# LOAD_CHECKPOINT_PATH="${MEGATRON_BERT_CASED_345M_CHECKPOINT_DIR_PATH}"
-SAVE_CHECKPOINT_PATH="${RETRAINED_BERT_CASED_345M_CHECKPOINT_DIR_PATH}"
+SAVE_CHECKPOINT_PATH="${RETRAINED_BERT_CASED_175B_CHECKPOINT_DIR_PATH}"
 VOCAB_FILE="${BERT_CASED_ENWIKI_VOCAB_PATH}"
 DATA_PATH="${BERT_CASED_ENWIKI_TEXT_DIR_PATH}/text_sentence"
+DS_CONFIG_PATH="${DS_ZERO3_OFFLOAD_MINIMAL_CONFIG_PATH}"
+
 
 BERT_ARGS="\
-  --num-layers 24 \
-  --hidden-size 1024 \
-  --num-attention-heads 16 \
-  --seq-length 512 \
-  --max-position-embeddings 512 \
-  --lr 0.0001 \
+  --num-layers 96 \
+  --hidden-size 12288 \
+  --num-attention-heads 96 \
+  --seq-length 2048 \
+  --max-position-embeddings 2048 \
+  --lr 6.0e-5 \
   --lr-decay-iters 990000 \
   --train-iters 2000000 \
-  --min-lr 0.00001 \
-  --lr-warmup-fraction 0.01 \
+	--min-lr 6.0e-6 \
+	--lr-decay-style cosine \
+  --warmup 0.01 \
   --vocab-file ${VOCAB_FILE} \
   --split 949,50,1 \
   --fp16 \
+"
+
+MEGATRON_DS_ARGS=" \
+  --deepspeed \
+  --deepspeed_config ${DS_CONFIG_PATH} \
 "
 
 OUTPUT_ARGS="\
@@ -48,30 +55,33 @@ OUTPUT_ARGS="\
   --checkpoint-activations \
 "
 
-if  [ "${1}" = "-d" ] || [ "${1}" = "--distributed" ]; then
+if  [ "$1" = "-d" ] || [ "$1" = "--distributed" ]; then
   # Get the following variables from `distributed_params.sh`:
+  # - NODE_RANK
   # - DISTRIBUTED_MODULE
   # - DISTRIBUTED_MODULE_ARGS
-  # - DISTRIBUTED_ARGS
-  # - BERT_BATCH_ARGS
+  # - MICRO_BATCH_SIZE
   source "${CURR_DIR_PATH}/distributed_params.sh"
+  # The older version of megatron does not accept
+  # `tensor-model-parallel-size` and `pipeline-model-parallel-size`
+  DISTRIBUTED_ARGS="\
+    --model-parallel-size 16 \
+  "
+  MICRO_BATCH_SIZE=1
 else
+  NODE_RANK=0
   MICRO_BATCH_SIZE=4
-  GLOBAL_BATCH_SIZE=8
 fi
 BERT_BATCH_ARGS="\
-  --micro-batch-size ${MICRO_BATCH_SIZE} \
-  --global-batch-size ${GLOBAL_BATCH_SIZE} \
+  --batch-size ${MICRO_BATCH_SIZE} \
 "
 
-# Some parallelized models are not compatible with the OG Megatron-LM checkpoint
-# Add `--load ${LOAD_CHECKPOINT_PATH}` into the following command for loading
-#   the OG Megatron-LM checkpoints,
 PYTHON_CMD="${CONTAINER_PYTHON_PATH} \
   ${DISTRIBUTED_MODULE} ${DISTRIBUTED_MODULE_ARGS} \
-  ${MEGATRON_DIR_PATH}/pretrain_bert.py \
+  ${MEGATRON_DS_DIR_PATH}/pretrain_bert.py \
   ${BERT_ARGS} \
   ${BERT_BATCH_ARGS} \
+  ${MEGATRON_DS_ARGS} \
   ${DISTRIBUTED_ARGS} \
   ${OUTPUT_ARGS} \
   --save ${SAVE_CHECKPOINT_PATH} \
@@ -82,6 +92,7 @@ PYTHON_CMD="${CONTAINER_PYTHON_PATH} \
 singularity exec \
   --nv \
   --cleanenv \
+  --env LOCAL_RANK="${NODE_RANK}" \
   --bind /gpfs,/lus \
   ${CONTAINER_PATH} \
   ${PYTHON_CMD}

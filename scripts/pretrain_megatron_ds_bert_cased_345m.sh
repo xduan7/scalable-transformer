@@ -22,7 +22,7 @@ source "${CURR_DIR_PATH}/paths.sh"
 SAVE_CHECKPOINT_PATH="${RETRAINED_BERT_CASED_345M_CHECKPOINT_DIR_PATH}"
 VOCAB_FILE="${BERT_CASED_ENWIKI_VOCAB_PATH}"
 DATA_PATH="${BERT_CASED_ENWIKI_TEXT_DIR_PATH}/text_sentence"
-DS_CONFIG_PATH="${DS_ZERO3_CONFIG_PATH}"
+DS_CONFIG_PATH="${DS_ZERO3_OFFLOAD_MINIMAL_CONFIG_PATH}"
 
 
 BERT_ARGS="\
@@ -41,12 +41,9 @@ BERT_ARGS="\
   --fp16 \
 "
 
-DEEPSPEED_ARGS=" \
+MEGATRON_DS_ARGS=" \
   --deepspeed \
   --deepspeed_config ${DS_CONFIG_PATH} \
-  --zero-stage 3 \
-  --zero-reduce-bucket-size 50000000 \
-  --zero-allgather-bucket-size 5000000000 \
 "
 
 OUTPUT_ARGS="\
@@ -59,38 +56,41 @@ OUTPUT_ARGS="\
 
 if  [ "$1" = "-d" ] || [ "$1" = "--distributed" ]; then
   # Get the following variables from `distributed_params.sh`:
-  # - NNODES
-  # - GPUS_PER_NODE
+  # - NODE_RANK
+  # - DISTRIBUTED_MODULE
+  # - DISTRIBUTED_MODULE_ARGS
   # - MICRO_BATCH_SIZE
   source "${CURR_DIR_PATH}/distributed_params.sh"
+  # The older version of megatron does not accept
+  # `tensor-model-parallel-size` and `pipeline-model-parallel-size`
+  DISTRIBUTED_ARGS="\
+    --model-parallel-size ${PIPELINE_MP_SIZE} \
+  "
 else
-  NNODES=1
-  GPUS_PER_NODE=1
+  NODE_RANK=0
   MICRO_BATCH_SIZE=4
 fi
 BERT_BATCH_ARGS="\
   --batch-size ${MICRO_BATCH_SIZE} \
 "
 
-
-# Optioanla: dd `--load ${LOAD_CHECKPOINT_PATH}` into the following command
-PYTHON_CMD="deepspeed \
-  --num_nodes ${NNODES} \
-  --num_gpus ${GPUS_PER_NODE} \
+PYTHON_CMD="${CONTAINER_PYTHON_PATH} \
+  ${DISTRIBUTED_MODULE} ${DISTRIBUTED_MODULE_ARGS} \
   ${MEGATRON_DS_DIR_PATH}/pretrain_bert.py \
   ${BERT_ARGS} \
   ${BERT_BATCH_ARGS} \
-  ${DEEPSPEED_ARGS} \
+  ${MEGATRON_DS_ARGS} \
+  ${DISTRIBUTED_ARGS} \
   ${OUTPUT_ARGS} \
   --save ${SAVE_CHECKPOINT_PATH} \
-  --data-path ${DATA_PATH}"
+  --data-path ${DATA_PATH} \
+"
 
-# `PYTHON_CMD` must be split into globs for argparse parsing
 # shellcheck disable=SC2086
 singularity exec \
   --nv \
   --cleanenv \
-  --env PATH="/home/xduan7/.local/bin:\${PATH}" \
-  --bind /gpfs/mira-home/xduan7,/lus/theta-fs0/projects/candle_aesp/xduan7/data \
+  --env LOCAL_RANK="${NODE_RANK}" \
+  --bind /gpfs,/lus \
   ${CONTAINER_PATH} \
   ${PYTHON_CMD}

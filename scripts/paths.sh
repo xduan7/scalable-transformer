@@ -9,10 +9,15 @@ PROJECT_DIR_PATH="$( realpath "${CURR_DIR_PATH}/../" )"
 ########################################################################
 
 SRC_DIR_PATH="${PROJECT_DIR_PATH}/src"
+SCRIPT_DIR_PATH="${PROJECT_DIR_PATH}/scripts"
 THIRD_PARTY_DIR_PATH="${PROJECT_DIR_PATH}/third-party"
 
 MEGATRON_DIR_PATH="${THIRD_PARTY_DIR_PATH}/megatron"
 MEGATRON_DS_DIR_PATH="${THIRD_PARTY_DIR_PATH}/deepseed-examples/Megatron-LM-v1.1.5-ZeRO3"
+
+PDSH_PATH="$( realpath "${HOME}/bin" )"
+PDSH_LIB_PATH="$( realpath "${HOME}/lib/pdsh" )"
+DEEPSPEED_PATH="$( realpath "${HOME}/.local/bin" )"
 
 
 ########################################################################
@@ -54,14 +59,14 @@ MEGATRON_CHECKPOINT_DIR_PATH="${CHECKPOINT_DIR_PATH}/megatron"
 MEGATRON_BERT_CASED_345M_CHECKPOINT_DIR_PATH="${MEGATRON_CHECKPOINT_DIR_PATH}/bert_cased_345m"
 MEGATRON_BERT_UNCASED_345M_CHECKPOINT_DIR_PATH="${MEGATRON_CHECKPOINT_DIR_PATH}/bert_uncased_345m"
 MEGATRON_GPT_345M_CHECKPOINT_DIR_PATH="${MEGATRON_CHECKPOINT_DIR_PATH}/gpt_345m"
-MEGATRON_BERT_CASED_345M_CHECKPOINT_DIR_PATH="${MEGATRON_CHECKPOINT_DIR_PATH}/bert_cased_345m"
 
 # Retrained checkpoints
 RETRAINED_CHECKPOINT_DIR_PATH="${CHECKPOINT_DIR_PATH}/scalable-transformer"
 RETRAINED_BERT_CASED_345M_CHECKPOINT_DIR_PATH="${RETRAINED_CHECKPOINT_DIR_PATH}/bert_cased_345m"
 RETRAINED_BERT_UNCASED_345M_CHECKPOINT_DIR_PATH="${RETRAINED_CHECKPOINT_DIR_PATH}/bert_uncased_345m"
 RETRAINED_GPT_345M_CHECKPOINT_DIR_PATH="${RETRAINED_CHECKPOINT_DIR_PATH}/gpt_345m"
-RETRAINED_BERT_CASED_345M_CHECKPOINT_DIR_PATH="${RETRAINED_CHECKPOINT_DIR_PATH}/bert_cased_345m"
+
+RETRAINED_BERT_CASED_175B_CHECKPOINT_DIR_PATH="${RETRAINED_CHECKPOINT_DIR_PATH}/bert_cased_175b"
 
 
 ########################################################################
@@ -70,8 +75,8 @@ RETRAINED_BERT_CASED_345M_CHECKPOINT_DIR_PATH="${RETRAINED_CHECKPOINT_DIR_PATH}/
 
 CONFIG_DIR_PATH="${CURR_DIR_PATH}/config"
 
-DS_ZERO2_CONFIG_PATH="${CONFIG_DIR_PATH}/ds_zero2.json"
-DS_ZERO3_CONFIG_PATH="${CONFIG_DIR_PATH}/ds_zero3.json"
+DS_ZERO0_OFFLOAD_MINIMAL_CONFIG_PATH="${CONFIG_DIR_PATH}/ds_zero0_offload_minimal.json"
+DS_ZERO3_OFFLOAD_MINIMAL_CONFIG_PATH="${CONFIG_DIR_PATH}/ds_zero3_offload_minimal.json"
 
 
 ########################################################################
@@ -85,3 +90,4 @@ CONDA_PATH="/lus/theta-fs0/software/thetagpu/conda/2021-06-28/mconda3/"
 CONTAINER_PATH="/lus/theta-fs0/projects/candle_aesp/xduan7/containers/megatron_ds.simg"
 CONTAINER_PYTHON_PATH="/opt/conda/bin/python3"
 
+DS_HOSTFILE_PATH="$( realpath "${SCRIPT_DIR_PATH}/.deepspeed_hostfile" )"
