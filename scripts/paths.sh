@@ -17,7 +17,7 @@ MEGATRON_DS_DIR_PATH="${THIRD_PARTY_DIR_PATH}/deepseed-examples/Megatron-LM-v1.1
 
 PDSH_PATH="$( realpath "${HOME}/bin" )"
 PDSH_LIB_PATH="$( realpath "${HOME}/lib/pdsh" )"
-DEEPSPEED_PATH="$( realpath "${HOME}/.local/bin" )"
+DEEPSPEED_PATH="$( realpath "${HOME}/.local/bin/deepspeed" )"
 
 
 ########################################################################
@@ -75,8 +75,10 @@ RETRAINED_BERT_CASED_175B_CHECKPOINT_DIR_PATH="${RETRAINED_CHECKPOINT_DIR_PATH}/
 
 CONFIG_DIR_PATH="${CURR_DIR_PATH}/config"
 
-DS_ZERO0_OFFLOAD_MINIMAL_CONFIG_PATH="${CONFIG_DIR_PATH}/ds_zero0_offload_minimal.json"
+DS_ZERO0_MINIMAL_CONFIG_PATH="${CONFIG_DIR_PATH}/ds_zero0_minimal.json"
+DS_ZERO3_MINIMAL_CONFIG_PATH="${CONFIG_DIR_PATH}/ds_zero3_minimal.json"
 DS_ZERO3_OFFLOAD_MINIMAL_CONFIG_PATH="${CONFIG_DIR_PATH}/ds_zero3_offload_minimal.json"
+DS_ZERO3_OFFLOAD_RELEASE_CONFIG_PATH="${CONFIG_DIR_PATH}/ds_zero3_offload_release.json"
 
 
 ########################################################################

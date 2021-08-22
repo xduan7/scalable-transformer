@@ -19,8 +19,10 @@
 #   to get the correct MPI specifications.
 
 MICRO_BATCH_SIZE=4
+# Only works for the latest Megatron-LM
+# Otherwise inferred from world-size // pipeline_mp_size
 TENSOR_MP_SIZE=2
-PIPELINE_MP_SIZE=2
+PIPELINE_MP_SIZE=4
 MASTER_PORT=6000
 
 CURR_DIR_PATH="$( cd -- "$( dirname "$( realpath "$0" ) " )" > /dev/null 2>&1 || exit ; pwd -P)"
@@ -66,21 +68,21 @@ DISTRIBUTED_ARGS="\
 
 # Construct a new hostfile compatible with DeepSpeed, stored in
 # environment variable `DS_HOSTFILE_PATH=${SCRIPT_DIR_PATH}/.deepspeed_hostfile`
-#if [[ -f "${COBALT_NODEFILE}" ]]; then
-#  rm -f "${DS_HOSTFILE_PATH}" 2> /dev/null && touch "${DS_HOSTFILE_PATH}"
-#  while read -r NAME; do
-#    IP_ADDR_CMD="hostname -I | cut -d' ' -f1"
-#    NUM_SLOTS_CMD="nvidia-smi --list-gpus | wc -l"
-#    if [[ "${NAME}" == "$( hostname )" ]]; then
-#      ADDR=$( eval "${IP_ADDR_CMD}" )
-#      NUM_SLOTS=$( eval "${NUM_SLOTS_CMD}" )
-#    else
-#      ADDR=$( ssh -n "${NAME}" "${IP_ADDR_CMD}" )
-#      NUM_SLOTS=$( ssh -n "${NAME}" "${NUM_SLOTS_CMD}" )
-#    fi
-#    echo "${ADDR} slots=${NUM_SLOTS}" >> "${DS_HOSTFILE_PATH}"
-#  done < "${COBALT_NODEFILE}"
-#else
-#  # Only the master node have `COBALT_NODEFILE`; the other nodes should wait
-#  sleep 5
-#fi
+if [[ -f "${COBALT_NODEFILE}" ]]; then
+  rm -f "${DS_HOSTFILE_PATH}" 2> /dev/null && touch "${DS_HOSTFILE_PATH}"
+  while read -r NAME; do
+    IP_ADDR_CMD="hostname -I | cut -d' ' -f1"
+    NUM_SLOTS_CMD="nvidia-smi --list-gpus | wc -l"
+    if [[ "${NAME}" == "$( hostname )" ]]; then
+      ADDR=$( eval "${IP_ADDR_CMD}" )
+      NUM_SLOTS=$( eval "${NUM_SLOTS_CMD}" )
+    else
+      ADDR=$( ssh -n "${NAME}" "${IP_ADDR_CMD}" )
+      NUM_SLOTS=$( ssh -n "${NAME}" "${NUM_SLOTS_CMD}" )
+    fi
+    echo "${NAME} slots=${NUM_SLOTS}" >> "${DS_HOSTFILE_PATH}"
+  done < "${COBALT_NODEFILE}"
+else
+  # Only the master node have `COBALT_NODEFILE`; the other nodes should wait
+  sleep 5
+fi
