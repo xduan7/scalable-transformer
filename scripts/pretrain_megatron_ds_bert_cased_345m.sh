@@ -22,9 +22,9 @@ source "${CURR_DIR_PATH}/paths.sh"
 SAVE_CHECKPOINT_PATH="${RETRAINED_BERT_CASED_345M_CHECKPOINT_DIR_PATH}"
 VOCAB_FILE="${BERT_CASED_ENWIKI_VOCAB_PATH}"
 DATA_PATH="${BERT_CASED_ENWIKI_TEXT_DIR_PATH}/text_sentence"
-DS_CONFIG_PATH="${DS_ZERO3_MINIMAL_CONFIG_PATH}"
+DS_CONFIG_PATH="${DS_ZERO0_MINIMAL_CONFIG_PATH}"
 
-
+#   --warmup 0.01 \
 BERT_ARGS="\
   --num-layers 24 \
   --hidden-size 1024 \
@@ -35,7 +35,7 @@ BERT_ARGS="\
   --lr-decay-iters 990000 \
   --train-iters 2000000 \
   --min-lr 0.00001 \
-  --warmup 0.01 \
+  --lr-warmup-fraction 0.01 \
   --vocab-file ${VOCAB_FILE} \
   --split 949,50,1 \
   --fp16 \
@@ -63,15 +63,27 @@ if  [ "$1" = "-d" ] || [ "$1" = "--distributed" ]; then
   source "${CURR_DIR_PATH}/distributed_params.sh"
   # The older version of megatron does not accept
   # `tensor-model-parallel-size` and `pipeline-model-parallel-size`
+  #  DISTRIBUTED_ARGS="\
+  #    --model-parallel-size ${TENSOR_MP_SIZE} \
+  #  "
+  #  DISTRIBUTED_ARGS="\
+  #    --model-parallel-size ${TENSOR_MP_SIZE} \
+  #    --pipe-parallel-size ${PIPELINE_MP_SIZE} \
+  #  "
   DISTRIBUTED_ARGS="\
-    --model-parallel-size ${PIPELINE_MP_SIZE} \
+    --tensor-model-parallel-size ${TENSOR_MP_SIZE} \
+    --pipeline-model-parallel-size ${PIPELINE_MP_SIZE} \
   "
 else
   NODE_RANK=0
   MICRO_BATCH_SIZE=4
 fi
+# global_batch_size = args.batch_size * data_parallel_size
+# BERT_BATCH_ARGS="\
+#   --batch-size ${MICRO_BATCH_SIZE} \
+# "
 BERT_BATCH_ARGS="\
-  --batch-size ${MICRO_BATCH_SIZE} \
+  --micro-batch-size ${MICRO_BATCH_SIZE} \
 "
 
 PYTHON_CMD="${CONTAINER_PYTHON_PATH} \
@@ -86,11 +98,12 @@ PYTHON_CMD="${CONTAINER_PYTHON_PATH} \
   --data-path ${DATA_PATH} \
 "
 
+#   --env LOCAL_RANK="${NODE_RANK}",CFLAGS="-I{HOME}/software/libaio/usr/include",LDFLAGS="-L{HOME}/software/libaio/usr/ib/x86_64-linux-gnu/" \
 # shellcheck disable=SC2086
 singularity exec \
   --nv \
   --cleanenv \
-  --env LOCAL_RANK="${NODE_RANK}" \
+  --env NCCL_DEBUG=WARN \
   --bind /gpfs,/lus \
   ${CONTAINER_PATH} \
   ${PYTHON_CMD}

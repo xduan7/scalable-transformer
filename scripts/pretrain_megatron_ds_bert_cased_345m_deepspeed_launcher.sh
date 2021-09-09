@@ -99,7 +99,8 @@ BERT_BATCH_ARGS="\
 #  --data-path ${DATA_PATH} \
 #"
 
-DEEPSPEED_CMD="${DEEPSPEED_PATH} \
+DEEPSPEED_CMD= \
+  "${DEEPSPEED_PATH} \
   ${DEEPSPEED_MPI_ARGS} \
   --num_nodes $( cat "${DS_HOSTFILE_PATH}" | wc -l ) \
   --num_gpus ${GPUS_PER_NODE} \

@@ -4,3 +4,6 @@
 [submodule "third-party/DeepSpeed"]
 	path = third-party/DeepSpeed
 	url = https://github.com/microsoft/DeepSpeed.git
+[submodule "third-party/magatron-deepspeed"]
+	path = third-party/magatron-deepspeed
+	url = git@github.com:bigscience-workshop/Megatron-DeepSpeed.git
