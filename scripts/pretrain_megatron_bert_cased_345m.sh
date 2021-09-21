@@ -31,8 +31,9 @@ BERT_ARGS="\
   --seq-length 512 \
   --max-position-embeddings 512 \
   --lr 0.0001 \
-  --lr-decay-iters 990000 \
-  --train-iters 2000000 \
+  --lr-decay-iters 50 \
+  --train-iters 200 \
+  --eval-interval 2000 \
   --min-lr 0.00001 \
   --lr-warmup-fraction 0.01 \
   --vocab-file ${VOCAB_FILE} \
@@ -67,6 +68,7 @@ BERT_BATCH_ARGS="\
 # Some parallelized models are not compatible with the OG Megatron-LM checkpoint
 # Add `--load ${LOAD_CHECKPOINT_PATH}` into the following command for loading
 #   the OG Megatron-LM checkpoints,
+#   --save ${SAVE_CHECKPOINT_PATH} \
 PYTHON_CMD="${CONTAINER_PYTHON_PATH} \
   ${DISTRIBUTED_MODULE} ${DISTRIBUTED_MODULE_ARGS} \
   ${MEGATRON_DIR_PATH}/pretrain_bert.py \
@@ -74,7 +76,6 @@ PYTHON_CMD="${CONTAINER_PYTHON_PATH} \
   ${BERT_BATCH_ARGS} \
   ${DISTRIBUTED_ARGS} \
   ${OUTPUT_ARGS} \
-  --save ${SAVE_CHECKPOINT_PATH} \
   --data-path ${DATA_PATH} \
 "
 

@@ -3,13 +3,8 @@
 # Pre-train Megatron-LM BERT (cased with 175b parameters) on single
 #   machine node (with one or more GPUs)
 #
-# Arguments:
-#   -d or --distributed: option for multi-GPU training
-#
 # Usage:
-#   $ ./pretrain_megatron_bert_cased_175b.sh  # single GPU
-#   or
-#   $ ./pretrain_megatron_bert_cased_175b.sh -d  # multiple GPUs on a single node
+#   $ ./pretrain_megatron_bert_cased_175b.sh
 #
 # Note:
 #   This script is only good for debugging on single-node.
@@ -24,7 +19,7 @@ VOCAB_FILE="${BERT_CASED_ENWIKI_VOCAB_PATH}"
 DATA_PATH="${BERT_CASED_ENWIKI_TEXT_DIR_PATH}/text_sentence"
 
 BERT_ARGS="\
-  --num-layers 96 \
+  --num-layers 48 \
   --hidden-size 12288 \
   --num-attention-heads 96 \
   --seq-length 2048 \
@@ -48,24 +43,12 @@ OUTPUT_ARGS="\
   --checkpoint-activations \
 "
 
-if  [ "${1}" = "-d" ] || [ "${1}" = "--distributed" ]; then
-  # Get the following variables from `distributed_params.sh`:
-  # - DISTRIBUTED_MODULE
-  # - DISTRIBUTED_MODULE_ARGS
-  # - DISTRIBUTED_ARGS
-  # - BERT_BATCH_ARGS
-  source "${CURR_DIR_PATH}/distributed_params.sh"
-  DISTRIBUTED_ARGS="
-  	--tensor-model-parallel-size 8 \
-	  --pipeline-model-parallel-size 16 \
-	  --rampup-batch-size 16 16 5859375 \
-  "
-  MICRO_BATCH_SIZE=1
-  GLOBAL_BATCH_SIZE=256
-else
-  MICRO_BATCH_SIZE=4
-  GLOBAL_BATCH_SIZE=8
-fi
+# Get the following variables from `distributed_params.sh`:
+# - DISTRIBUTED_MODULE
+# - DISTRIBUTED_MODULE_ARGS
+# - DISTRIBUTED_ARGS
+# - BERT_BATCH_ARGS
+source "${CURR_DIR_PATH}/distributed_params.sh"
 BERT_BATCH_ARGS="\
   --micro-batch-size ${MICRO_BATCH_SIZE} \
   --global-batch-size ${GLOBAL_BATCH_SIZE} \

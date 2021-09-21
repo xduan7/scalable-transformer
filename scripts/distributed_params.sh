@@ -19,9 +19,10 @@
 #   to get the correct MPI specifications.
 
 MICRO_BATCH_SIZE=4
+NUM_MICRO_BATCH=1
 TENSOR_MP_SIZE=2
-PIPELINE_MP_SIZE=2
-NUM_MICRO_BATCH=2
+PIPELINE_MP_SIZE=8
+
 MASTER_PORT=6000
 
 CURR_DIR_PATH="$( cd -- "$( dirname "$( realpath "$0" ) " )" > /dev/null 2>&1 || exit ; pwd -P)"

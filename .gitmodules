@@ -7,3 +7,6 @@
 [submodule "third-party/magatron-deepspeed"]
 	path = third-party/magatron-deepspeed
 	url = git@github.com:bigscience-workshop/Megatron-DeepSpeed.git
+[submodule "third-party/gpt-neox"]
+	path = third-party/gpt-neox
+	url = https://github.com/EleutherAI/gpt-neox.git

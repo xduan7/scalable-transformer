@@ -41,3 +41,11 @@ git submodule add git@github.com:microsoft/DeepSpeedExamples.git PROJECT_DIR/thi
 cd PROJECT_DIR/third-party/deepseed-examples
 git reset --hard 25d73cf73fb3dc66faefa141b7319526555be9fc 
 ```
+
+## GPT-NeoX (gpt-neox)
+
+```bash
+git submodule add https://github.com/EleutherAI/gpt-neox.git PROJECT_DIR/third-party/gpt-neox
+cd PROJECT_DIR/third-party/gpt-neox
+git reset --hard e1c82509f23d5316c75c441aa9f49c2142d40f3f
+```

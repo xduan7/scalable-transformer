@@ -13,9 +13,9 @@ SCRIPT_DIR_PATH="${PROJECT_DIR_PATH}/scripts"
 THIRD_PARTY_DIR_PATH="${PROJECT_DIR_PATH}/third-party"
 
 MEGATRON_DIR_PATH="${THIRD_PARTY_DIR_PATH}/megatron"
-# MEGATRON_DS_DIR_PATH="${THIRD_PARTY_DIR_PATH}/deepseed-examples/Megatron-LM-v1.1.5-ZeRO3"
+MEGATRON_DS_DIR_PATH="${THIRD_PARTY_DIR_PATH}/deepseed-examples/Megatron-LM-v1.1.5-ZeRO3"
 # MEGATRON_DS_DIR_PATH="${THIRD_PARTY_DIR_PATH}/deepseed-examples/Megatron-LM-v1.1.5-3D_parallelism"
-MEGATRON_DS_DIR_PATH="${THIRD_PARTY_DIR_PATH}/magatron-deepspeed"
+# MEGATRON_DS_DIR_PATH="${THIRD_PARTY_DIR_PATH}/magatron-deepspeed"
 
 PDSH_PATH="$( realpath "${HOME}/bin" )"
 PDSH_LIB_PATH="$( realpath "${HOME}/lib/pdsh" )"

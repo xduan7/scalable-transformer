@@ -9,6 +9,9 @@
 #   -n: number of nodes, which are the first `n` nodes from `HOSTFILE_PATH`
 #   -t: time in seconds spent on each nodes for measurement
 
+CURR_DIR_PATH="$( cd -- "$( dirname "$( realpath "$0" ) " )" > /dev/null 2>&1 || exit ; pwd -P)"
+source "${CURR_DIR_PATH}/paths.sh"
+
 # Gather and print GPU stats from all the nodes defined in `HOSTFILE_PATH`
 while getopts ":n:t:" opt; do
     case "${opt}" in
@@ -21,21 +24,17 @@ shift $((OPTIND-1))
 # Add wiggle room for nvidia-smi in case of the latency
 TIME=$( echo "${TIME} + 0.5" | bc )
 
-# CURR_DIR_PATH="$( cd -- "$( dirname "$( realpath "$0" ) " )" > /dev/null 2>&1 || exit ; pwd -P)"
-# source "${CURR_DIR_PATH}/paths.sh"
-HOSTFILE_PATH="/homes/duan/.hostfile"
-
 # This nvidia-smi query command prints three lines for three GPU stats:
 # - power utilization in percentage
 # - GPU utilization in percentage
 # - Memory utilization in percentage
 # All the stats are averaged over all the GPUs (on the node that execute this query)
 NVIDIA_SMI_QUERY_CMD="timeout --foreground ${TIME} nvidia-smi \
-  --query-gpu=power.draw,power.limit,utilization.gpu,utilization.memory \
+  --query-gpu=power.draw,power.limit,utilization.gpu,memory.used,memory.total \
   --format=csv --loop=1 | \
   awk -F',' \
-    'NR>1 {pwr_draw+=\$1; pwr_limit+=\$2; gpu_util+=\$3; mem_util+=\$4; ++n} \
-    END {print pwr_draw/pwr_limit; print gpu_util/n; print mem_util/n}' \
+    'NR>1 {pwr_draw+=\$1; pwr_limit+=\$2; gpu_util+=\$3; mem_used+=\$4; mem_total+=\$5; ++n} \
+    END {print 100*pwr_draw/pwr_limit; print gpu_util/n; print 100*mem_used/mem_total}' \
 "
 
 COUNTER=0
@@ -53,9 +52,9 @@ while read -r NAME SLOT_INFO ; do
       read -r -d '\n' PWR_UTIL_ GPU_UTIL_ MEM_UTIL_ <<< "$( ssh "${NAME}" "${NVIDIA_SMI_QUERY_CMD}" < /dev/null )"
     fi
     COUNTER=$((COUNTER + 1))
-    printf " \tPower Utilization:\t %s%%\n" "${PWR_UTIL_}"
-    printf " \tGPU Utilization:\t %s%%\n" "${GPU_UTIL_}"
-    printf " \tMemory Utilization:\t %s%%\n" "${MEM_UTIL_}"
+    printf " \tPower Utilization:\t %s %%\n" "${PWR_UTIL_}"
+    printf " \tGPU Utilization:\t %s %%\n" "${GPU_UTIL_}"
+    printf " \tMemory Utilization:\t %s %%\n" "${MEM_UTIL_}"
     PWR_UTIL=$( echo "scale=2; ${PWR_UTIL} + ${PWR_UTIL_}" | bc | awk '{printf "%.2f\n", $0}' )
     GPU_UTIL=$( echo "scale=2; ${GPU_UTIL} + ${GPU_UTIL_}" | bc | awk '{printf "%.2f\n", $0}' )
     MEM_UTIL=$( echo "scale=2; ${MEM_UTIL} + ${MEM_UTIL_}" | bc | awk '{printf "%.2f\n", $0}' )
@@ -69,6 +68,7 @@ PWR_UTIL=$( echo "scale=2; ${PWR_UTIL} / ${COUNTER}" | bc | awk '{printf "%.2f\n
 GPU_UTIL=$( echo "scale=2; ${GPU_UTIL} / ${COUNTER}" | bc | awk '{printf "%.2f\n", $0}' )
 MEM_UTIL=$( echo "scale=2; ${MEM_UTIL} / ${COUNTER}" | bc | awk '{printf "%.2f\n", $0}' )
 printf "===============================================================================\n"
-printf "Averaged Power Utilization:\t %s%%\n" "${PWR_UTIL}"
-printf "Averaged GPU Utilization:\t %s%%\n" "${GPU_UTIL}"
-printf "Averaged Memory Utilization:\t %s%%\n" "${MEM_UTIL}"
+
+printf "Averaged GPU Utilization:\t %s %%\n" "${GPU_UTIL}"
+printf "Averaged Memory Utilization:\t %s %%\n" "${MEM_UTIL}"
+printf "Averaged Power Utilization:\t %s %%\n" "${PWR_UTIL}"
