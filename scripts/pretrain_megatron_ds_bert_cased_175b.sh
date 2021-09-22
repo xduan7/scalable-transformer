@@ -76,7 +76,7 @@ BERT_BATCH_ARGS="\
   --batch-size ${MICRO_BATCH_SIZE} \
 "
 
-PYTHON_CMD="${CONTAINER_PYTHON_PATH} \
+PYTHON_CMD="${MEGATRON_DS_CONTAINER_PYTHON_PATH} \
   ${DISTRIBUTED_MODULE} ${DISTRIBUTED_MODULE_ARGS} \
   ${MEGATRON_DS_DIR_PATH}/pretrain_bert.py \
   ${BERT_ARGS} \
@@ -94,5 +94,5 @@ singularity exec \
   --cleanenv \
   --env LOCAL_RANK="${NODE_RANK}" \
   --bind /gpfs,/lus \
-  ${CONTAINER_PATH} \
+  ${MEGATRON_DS_CONTAINER_PATH} \
   ${PYTHON_CMD}

@@ -57,7 +57,7 @@ BERT_BATCH_ARGS="\
 # Some parallelized models are not compatible with the OG Megatron-LM checkpoint
 # Add `--load ${LOAD_CHECKPOINT_PATH}` into the following command for loading
 #   the OG Megatron-LM checkpoints,
-PYTHON_CMD="${CONTAINER_PYTHON_PATH} \
+PYTHON_CMD="${MEGATRON_DS_CONTAINER_PYTHON_PATH} \
   ${DISTRIBUTED_MODULE} ${DISTRIBUTED_MODULE_ARGS} \
   ${MEGATRON_DIR_PATH}/pretrain_bert.py \
   ${BERT_ARGS} \
@@ -73,5 +73,5 @@ singularity exec \
   --nv \
   --cleanenv \
   --bind /gpfs,/lus \
-  ${CONTAINER_PATH} \
+  ${MEGATRON_DS_CONTAINER_PATH} \
   ${PYTHON_CMD}

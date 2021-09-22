@@ -49,3 +49,41 @@ git submodule add https://github.com/EleutherAI/gpt-neox.git PROJECT_DIR/third-p
 cd PROJECT_DIR/third-party/gpt-neox
 git reset --hard e1c82509f23d5316c75c441aa9f49c2142d40f3f
 ```
+
+The singularity image was build using the following command:
+```bash
+sudo singularity build gpt-neox.simg docker://leogao2/gpt-neox:sha-157d29d
+```
+
+However, the image does not work out of the box. 
+Make sure that there are only one version of PyTorch installed (1.8) and install fused kernel manually using the following command:
+```bash
+python PROJECT_DIR/third-party/gpt-neox/megatron/fused_kernels/setup.py install --user
+```
+
+Besides, a special edition of DeepSpeed should be installed
+```bash
+pip install git+git://github.com/EleutherAI/DeeperSpeed.git@c45ec1c0ac05803c02763d7e43be67919e475a2c#egg=deepspeed
+```
+There are some changes to be made about this edition of DeepSpeed. 
+In `deepspeed/launcher/runner.py`:
+```python
+# In function `parse_args`
+# Comment out the following line and the return
+# parser.add_argument('user_args', nargs=argparse.REMAINDER)
+
+# Add the following lines
+args, user_args = parser.parse_known_args(args=args)
+args.user_args = user_args
+return args
+```
+This would parse the arguments including hostfile correctly. 
+
+
+
+There are a few changes to be
+
+Remaining issues
+- no hostfile so only training with local resources
+- incompatibility of NCCL and GPU"NCCL WARN Failed to open libibverbs.so"
+- shuffle index length is not equal to sample index length 

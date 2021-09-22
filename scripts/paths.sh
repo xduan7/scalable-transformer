@@ -17,6 +17,8 @@ MEGATRON_DS_DIR_PATH="${THIRD_PARTY_DIR_PATH}/deepseed-examples/Megatron-LM-v1.1
 # MEGATRON_DS_DIR_PATH="${THIRD_PARTY_DIR_PATH}/deepseed-examples/Megatron-LM-v1.1.5-3D_parallelism"
 # MEGATRON_DS_DIR_PATH="${THIRD_PARTY_DIR_PATH}/magatron-deepspeed"
 
+NEOX_DIR_PATH="${THIRD_PARTY_DIR_PATH}/gpt-neox"
+
 PDSH_PATH="$( realpath "${HOME}/bin" )"
 PDSH_LIB_PATH="$( realpath "${HOME}/lib/pdsh" )"
 DEEPSPEED_PATH="$( realpath "${HOME}/.local/bin/deepspeed" )"
@@ -82,6 +84,10 @@ DS_ZERO3_MINIMAL_CONFIG_PATH="${CONFIG_DIR_PATH}/ds_zero3_minimal.json"
 DS_ZERO3_OFFLOAD_MINIMAL_CONFIG_PATH="${CONFIG_DIR_PATH}/ds_zero3_offload_minimal.json"
 DS_ZERO3_OFFLOAD_RELEASE_CONFIG_PATH="${CONFIG_DIR_PATH}/ds_zero3_offload_release.json"
 
+NEOX_CONFIG_DIR_PATH="${CONFIG_DIR_PATH}/neox"
+NEOX_345M_DIR_PATH="${NEOX_CONFIG_DIR_PATH}/345m.yml"
+NEOX_LOCAL_SETUP_CONFIG_PATH="${NEOX_CONFIG_DIR_PATH}/local_setup.yml"
+
 
 ########################################################################
 # Other paths
@@ -91,7 +97,9 @@ LOG_DIR_PATH="${PROJECT_DIR_PATH}/logs"
 
 CONDA_PATH="/lus/theta-fs0/software/thetagpu/conda/2021-06-28/mconda3/"
 
-CONTAINER_PATH="/lus/theta-fs0/projects/candle_aesp/xduan7/containers/megatron_ds.simg"
-CONTAINER_PYTHON_PATH="/opt/conda/bin/python3"
+MEGATRON_DS_CONTAINER_PATH="/lus/theta-fs0/projects/candle_aesp/xduan7/containers/megatron_ds.simg"
+MEGATRON_DS_CONTAINER_PYTHON_PATH="/opt/conda/bin/python3"
+NEOX_CONTAINER_PATH="/lus/theta-fs0/projects/candle_aesp/xduan7/containers/gpt-neox.simg"
+NEOX_CONTAINER_PYTHON_PATH="/usr/bin/python"
 
 HOSTFILE_PATH="$( realpath "${SCRIPT_DIR_PATH}/.hostfile" )"

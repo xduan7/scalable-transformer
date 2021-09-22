@@ -122,5 +122,5 @@ singularity exec \
   --cleanenv \
   --env PATH="${PDSH_PATH}:\${PATH}" \
   --bind /gpfs,/lus,${SSH_AUTH_SOCK},"/etc/ssh/ssh_config" \
-  ${CONTAINER_PATH} \
+  ${MEGATRON_DS_CONTAINER_PATH} \
   ${DEEPSPEED_CMD}
