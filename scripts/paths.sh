@@ -13,9 +13,9 @@ SCRIPT_DIR_PATH="${PROJECT_DIR_PATH}/scripts"
 THIRD_PARTY_DIR_PATH="${PROJECT_DIR_PATH}/third-party"
 
 MEGATRON_DIR_PATH="${THIRD_PARTY_DIR_PATH}/megatron"
-MEGATRON_DS_DIR_PATH="${THIRD_PARTY_DIR_PATH}/deepseed-examples/Megatron-LM-v1.1.5-ZeRO3"
+# MEGATRON_DS_DIR_PATH="${THIRD_PARTY_DIR_PATH}/deepseed-examples/Megatron-LM-v1.1.5-ZeRO3"
 # MEGATRON_DS_DIR_PATH="${THIRD_PARTY_DIR_PATH}/deepseed-examples/Megatron-LM-v1.1.5-3D_parallelism"
-# MEGATRON_DS_DIR_PATH="${THIRD_PARTY_DIR_PATH}/magatron-deepspeed"
+MEGATRON_DS_DIR_PATH="${THIRD_PARTY_DIR_PATH}/megatron-deepspeed"
 
 NEOX_DIR_PATH="${THIRD_PARTY_DIR_PATH}/gpt-neox"
 
@@ -99,7 +99,7 @@ CONDA_PATH="/lus/theta-fs0/software/thetagpu/conda/2021-06-28/mconda3/"
 
 MEGATRON_DS_CONTAINER_PATH="/lus/theta-fs0/projects/candle_aesp/xduan7/containers/megatron_ds.simg"
 MEGATRON_DS_CONTAINER_PYTHON_PATH="/opt/conda/bin/python3"
-NEOX_CONTAINER_PATH="/lus/theta-fs0/projects/candle_aesp/xduan7/containers/gpt-neox.simg"
-NEOX_CONTAINER_PYTHON_PATH="/usr/bin/python"
+NEOX_CONTAINER_PATH="/lus/theta-fs0/projects/candle_aesp/xduan7/containers/gpt-neox-official.simg"
+NEOX_CONTAINER_PYTHON_PATH="python"
 
 HOSTFILE_PATH="$( realpath "${SCRIPT_DIR_PATH}/.hostfile" )"

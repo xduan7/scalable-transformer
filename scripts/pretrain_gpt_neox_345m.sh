@@ -1,24 +1,28 @@
 #!/usr/bin/env bash
 
+# Pre-train GPT-NeoX on multiple nodes
+#
+# Arguments:
+#   -n: number of nodes for pretraining; using all the nodes in
+#       the hostfile if not given
+
 CURR_DIR_PATH="$( cd -- "$( dirname "$( realpath "$0" ) " )" > /dev/null 2>&1 || exit ; pwd -P)"
 source "${CURR_DIR_PATH}/paths.sh"
+#source "${CURR_DIR_PATH}/generate_hostfile.sh"
 
-# Generate hostfile
-source "${CURR_DIR_PATH}/generate_hostfile.sh"
+while getopts ":n:" opt; do
+    case "${opt}" in
+        n) NUM_NODES=${OPTARG};;
+        *)  echo "Illegal argument."; exit 1;;
+    esac
+done
+shift $((OPTIND-1))
 
 
-PYTHON_CMD="${NEOX_DIR_PATH}/deepy.py \
-  ${NEOX_DIR_PATH}/pretrain_gpt2.py \
-  -d ${NEOX_CONFIG_DIR_PATH} local_setup.yml 345m.yml \
-"
+if [ -z "$NUM_NODES" ]
+then
+    NUM_NODES="$( cat "${HOSTFILE_PATH}" | wc -l )"
+fi
 
-# shellcheck disable=SC2086
-# --env NCCL_DEBUG=WARN,LD_LIBRARY_PATH="/usr/local/cuda/lib64:\${LD_LIBRARY_PATH}" \
-# --bind /gpfs,/lus,/usr/local/cuda/lib64 \
-singularity exec \
-  --nv \
-  --cleanenv \
-  --env NCCL_DEBUG=WARN \
-  --bind /gpfs,/lus \
-  ${NEOX_CONTAINER_PATH} \
-  ${PYTHON_CMD}
+NUM_WORKERS=$((NUM_NODES*8))
+mpirun -n ${NUM_WORKERS} -x MODULEPATH --map-by ppr:8:node -hostfile ${HOSTFILE_PATH} "${CURR_DIR_PATH}/pretrain_gpt_neox_345m_worker.sh"

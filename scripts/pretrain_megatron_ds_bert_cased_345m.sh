@@ -100,10 +100,11 @@ PYTHON_CMD="${MEGATRON_DS_CONTAINER_PYTHON_PATH} \
 
 #   --env LOCAL_RANK="${NODE_RANK}",CFLAGS="-I{HOME}/software/libaio/usr/include",LDFLAGS="-L{HOME}/software/libaio/usr/ib/x86_64-linux-gnu/" \
 # shellcheck disable=SC2086
+# Set `NCCL_IB_DISABLE` to 1 prevents collective mismatch error
 singularity exec \
   --nv \
   --cleanenv \
-  --env NCCL_DEBUG=WARN \
+  --env NCCL_DEBUG=INFO,NCCL_DEBUG_SUBSYS=ENV,NCCL_IB_DISABLE=1 \
   --bind /gpfs,/lus \
   ${MEGATRON_DS_CONTAINER_PATH} \
   ${PYTHON_CMD}

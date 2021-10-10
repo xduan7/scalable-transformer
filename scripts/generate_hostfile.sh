@@ -6,6 +6,8 @@
 CURR_DIR_PATH="$( cd -- "$( dirname "$( realpath "$0" ) " )" > /dev/null 2>&1 || exit ; pwd -P)"
 source "${CURR_DIR_PATH}/paths.sh"
 
+echo "Generating hostfile ${HOSTFILE_PATH} from COBALT_NODEFILE ..."
+
 if [[ -f "${COBALT_NODEFILE}" ]]; then
   rm -f "${HOSTFILE_PATH}" 2> /dev/null && touch "${HOSTFILE_PATH}"
   while read -r NAME; do

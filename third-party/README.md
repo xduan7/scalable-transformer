@@ -15,14 +15,15 @@ Uses Megatron-LM v2.4
 ```bash
 git submodule add git@github.com:bigscience-workshop/Megatron-DeepSpeed.git PROJECT_DIR/third-party/magatron-deepspeed    
 cd PROJECT_DIR/third-party/magatron-deepspeed
-git reset --hard b4cc77fe86585384f57a815ec606d749b5c0874c  
+git reset --hard 2f662e841c377f142c7da9c9fbcc2f666d612f78  
 ```
 
 It's recommended that the big-science branch of deepspeed should be installed:
 ```bash
-git clone https://github.com/microsoft/deepspeed PROJECT_DIR/third-party/deepspeed-big-science
+git submodule add https://github.com/microsoft/deepspeed PROJECT_DIR/third-party/deepspeed-big-science
 cd PROJECT_DIR/third-party/deepspeed-big-science
 git checkout big-science
+git reset --hard c7f3bc51c27884ad80dcafe4aa60f070c1dfa26e
 rm -rf build
 TORCH_CUDA_ARCH_LIST="8.0" DS_BUILD_CPU_ADAM=1 DS_BUILD_AIO=1 DS_BUILD_UTILS=1 pip install -e . --global-option="build_ext" --global-option="-j8" --no-cache -v --disable-pip-version-check
 ```
@@ -61,11 +62,17 @@ Make sure that there are only one version of PyTorch installed (1.8) and install
 python PROJECT_DIR/third-party/gpt-neox/megatron/fused_kernels/setup.py install --user
 ```
 
-Besides, a special edition of DeepSpeed should be installed
+Besides, a special edition of DeepSpeed should be installed from the third-party `deeperspeed` directory:
 ```bash
-pip install git+git://github.com/EleutherAI/DeeperSpeed.git@c45ec1c0ac05803c02763d7e43be67919e475a2c#egg=deepspeed
+# pip install git+git://github.com/EleutherAI/DeeperSpeed.git@eb7f5cff36678625d23db8a8fe78b4a93e5d2c75#egg=deepspeed
+git submodule add https://github.com/EleutherAI/DeeperSpeed.git PROJECT_DIR/third-party/deeperspeed
+cd PROJECT_DIR/third-party/deeperspeed
+git reset --hard eb7f5cff36678625d23db8a8fe78b4a93e5d2c75
+cd PROJECT_DIR
+pip install -e ./third-party/deeperspeed
 ```
-There are some changes to be made about this edition of DeepSpeed. 
+
+Moreover, there are some changes to be made about this edition of DeepSpeed. 
 In `deepspeed/launcher/runner.py`:
 ```python
 # In function `parse_args`
@@ -77,8 +84,15 @@ args, user_args = parser.parse_known_args(args=args)
 args.user_args = user_args
 return args
 ```
-This would parse the arguments including hostfile correctly. 
-
+This would parse the arguments including hostfile correctly.
+Another change that may or may not be necessary is that, the function `OpenMPIRunner` in `deepspeed/launcher/multinode_runner` requires `num_nodes` and `num_gpus` to be set to `-1`. 
+Change the assertion statement to a warning and then change the values of `num_nodes` and `num_gpus` to `-1` might be a more friendly approach, that prevents any faulty argument parsing.
+And finally, to make the configuration easier, add configuration file path as an argument in function `consume_neox_args` in `gpt-neox/neox_arguments` like this:
+```python
+if os.path.exists(args_parsed.megatron_config):
+    with open(args_parsed.megatron_config, 'r') as _f:
+        megatron_config = json.load(_f)
+```
 
 
 There are a few changes to be

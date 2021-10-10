@@ -4,9 +4,15 @@
 [submodule "third-party/DeepSpeed"]
 	path = third-party/DeepSpeed
 	url = https://github.com/microsoft/DeepSpeed.git
-[submodule "third-party/magatron-deepspeed"]
-	path = third-party/magatron-deepspeed
-	url = git@github.com:bigscience-workshop/Megatron-DeepSpeed.git
 [submodule "third-party/gpt-neox"]
 	path = third-party/gpt-neox
 	url = https://github.com/EleutherAI/gpt-neox.git
+[submodule "third-party/megatron-deepspeed"]
+	path = third-party/megatron-deepspeed
+	url = git@github.com:bigscience-workshop/Megatron-DeepSpeed.git
+[submodule "third-party/deepspeed-big-science"]
+	path = third-party/deepspeed-big-science
+	url = https://github.com/microsoft/deepspeed
+[submodule "third-party/deeperspeed"]
+	path = third-party/deeperspeed
+	url = https://github.com/EleutherAI/DeeperSpeed.git
